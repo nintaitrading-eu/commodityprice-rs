@@ -8,18 +8,19 @@ struct Ticker<'a>
 {
     yahoo: &'a str,
     local: &'a str,
+    currency: &'a str,
     active: bool,
 }
 
 fn main()
 {
     let tickers: Vec<Ticker> = vec![
-        Ticker {yahoo: "AD.AS", local: "ams_ad", active: true},
-        Ticker {yahoo: "BESI.AS", local: "ams_besi", active: true},
-        Ticker {yahoo: "BOKA.AS", local: "ams_boka", active: true},
-        Ticker {yahoo: "EXM.BR", local: "ebr_exm", active: true},
-        Ticker {yahoo: "EUR=X", local: "EUR", active: true},
-        Ticker {yahoo: "EURUSD=X", local: "USD", active: true}
+        Ticker {yahoo: "AD.AS", local: "ams_ad", currency: "EUR", active: true},
+        Ticker {yahoo: "BESI.AS", local: "ams_besi", currency: "EUR", active: true},
+        Ticker {yahoo: "BOKA.AS", local: "ams_boka", currency: "EUR", active: true},
+        Ticker {yahoo: "EXM.BR", local: "ebr_exm", currency: "EUR", active: true},
+        Ticker {yahoo: "EUR=X", local: "USD", currency: "EUR", active: true},
+        Ticker {yahoo: "EURUSD=X", local: "EUR", currency: "USD", active: true}
     ];
     for (i, ticker) in tickers.iter().enumerate()
     {
@@ -46,7 +47,7 @@ fn retrieve_and_print(aticker: &Ticker, ayear: i32)
     // print the ledger price database line for each day we got a price from the api.
     for bar in &data
     {
-       println!("P {} {} {:.2} USD", bar.timestamp.format("%Y-%m-%d"), aticker.local, bar.close)
+       println!("P {} {} {:.2} {}", bar.timestamp.format("%Y-%m-%d"), aticker.local, bar.close, aticker.currency)
     }
 
 }
