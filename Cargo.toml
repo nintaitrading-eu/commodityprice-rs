@@ -1,0 +1,8 @@
+[package]
+name = "commodityprice"
+version = "0.1.0"
+authors = ["Andy Nagels <thereisanewway@gmail.com>"]
+
+[dependencies]
+chrono = "0.4"
+yahoo-finance = "0.2"
