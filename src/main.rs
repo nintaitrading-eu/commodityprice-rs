@@ -3,35 +3,50 @@ extern crate chrono;
 use chrono::{DateTime, TimeZone, Utc};
 use yahoo_finance::{history};
 
-fn main()
+
+struct Ticker<'a>
 {
-    /*
-     * ams_ahold,AD.AS
-     * ams_besi,BESI.AS
-     * ams_boka,BOKA.AS
-     * EUR,EUR=X
-     * USD,EURUSD=X
-     */
-    // TODO: make sure the 2008 does not have to be copy/pasted
-    // Also make a translation for the ticker symbols
-    // How to get the EUR values? Get the EURO price too? EUR=X
-    retrieve_and_print("BESI.AS", 2008);
-    retrieve_and_print("EXM.BR", 2008);
-    retrieve_and_print("EUR=X", 2008);
-    retrieve_and_print("EURUSD=X", 2008);
+    yahoo: &'a str,
+    local: &'a str,
+    active: bool,
 }
 
-fn retrieve_and_print(asymbol: &str, ayear: i32)
+fn main()
+{
+    let tickers: Vec<Ticker> = vec![
+        Ticker {yahoo: "AD.AS", local: "ams_ad", active: true},
+        Ticker {yahoo: "BESI.AS", local: "ams_besi", active: true},
+        Ticker {yahoo: "BOKA.AS", local: "ams_boka", active: true},
+        Ticker {yahoo: "EXM.BR", local: "ebr_exm", active: true},
+        Ticker {yahoo: "EUR=X", local: "EUR", active: true},
+        Ticker {yahoo: "EURUSD=X", local: "USD", active: true}
+    ];
+    for (i, ticker) in tickers.iter().enumerate()
+    {
+        // TODO: year as parameter?
+        process(ticker, 2008)
+    }
+}
+
+fn process(aticker: &Ticker, ayear: i32)
+{
+    if !(aticker.active)
+    {
+        return;
+    }
+    retrieve_and_print(aticker, ayear);
+}
+
+fn retrieve_and_print(aticker: &Ticker, ayear: i32)
 {
     let start: DateTime<Utc> = Utc.ymd(ayear, 1, 1).and_hms(0, 0, 0);
     let end: DateTime<Utc> = Utc.ymd(ayear, 12, 31).and_hms(0, 0, 0);
-    // let end = Utc::now();
-    let data = history::retrieve_range(asymbol, start, Some(end)).unwrap();
+    let data = history::retrieve_range(aticker.yahoo, start, Some(end)).unwrap();
 
-    // print the date and closing price for each day we have data
+    // print the ledger price database line for each day we got a price from the api.
     for bar in &data
     {
-       println!("P {} {} {:.2} USD", bar.timestamp.format("%Y-%m-%d"), asymbol, bar.close)
+       println!("P {} {} {:.2} USD", bar.timestamp.format("%Y-%m-%d"), aticker.local, bar.close)
     }
 
 }
