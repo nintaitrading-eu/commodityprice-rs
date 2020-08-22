@@ -1,6 +1,22 @@
 use chrono::{DateTime, TimeZone, Utc};
+use chrono::prelude::{Datelike};
 use yahoo_finance::{history, Bar};
+use docopt::Docopt;
 
+const VERSION: &'static str = "0.1.0";
+const USAGE: &'static str = "
+Commodityprice
+
+Usage:
+    commodityprice [--year=<year>]
+    commodityprice (-h | --help)
+    commodityprice --version
+
+Options:
+    [--year=<year>]   Get commodity prices for the given year. If no year is given, the current year is used.
+    -h --help  Show this screen.
+    --version  Show version.
+";
 
 struct Ticker<'a>
 {
@@ -12,6 +28,24 @@ struct Ticker<'a>
 
 fn main()
 {
+    let args = Docopt::new(USAGE)
+        .and_then(|dopt| dopt.parse())
+        .unwrap_or_else(|e| e.exit());
+
+    if args.get_bool("--version")
+    {
+        println!("Ledgerexport-tax v{}", VERSION);
+        std::process::exit(0);
+    }
+
+    let current_year: i32 = Utc::now().year();
+    let year = match args.get_str("--year").parse::<i32>()
+    {
+        Ok(num) => num,
+        Err(_) => current_year,
+    };
+
+
     let tickers: Vec<Ticker> = vec![
         Ticker {yahoo: "AD.AS", local: "ams_ad", currency: "EUR", active: true},
         Ticker {yahoo: "BESI.AS", local: "ams_besi", currency: "EUR", active: true},
@@ -44,10 +78,9 @@ fn main()
         Ticker {yahoo: "BTC-EUR", local: "BTC", currency: "EUR", active: true},
         Ticker {yahoo: "XRP-EUR", local: "XRP", currency: "EUR", active: true}
     ];
-    for (i, ticker) in tickers.iter().enumerate()
+    for ticker in tickers.iter()
     {
-        // TODO: year as parameter?
-        process(ticker, 2008)
+        process(ticker, year)
     }
 }
 

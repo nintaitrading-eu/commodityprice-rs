@@ -5,5 +5,6 @@ authors = ["Andy Nagels <thereisanewway@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+docopt = "=1.0.2"
 chrono = "0.4"
 yahoo-finance = "0.2"
