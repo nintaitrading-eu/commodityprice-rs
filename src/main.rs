@@ -1,5 +1,3 @@
-extern crate yahoo_finance;
-extern crate chrono;
 use chrono::{DateTime, TimeZone, Utc};
 use yahoo_finance::{history, Bar};
 
