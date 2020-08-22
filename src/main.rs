@@ -47,36 +47,38 @@ fn main()
 
 
     let tickers: Vec<Ticker> = vec![
-        Ticker {yahoo: "AD.AS", local: "ams_ad", currency: "EUR", active: true},
+        Ticker {yahoo: "AD.AS", local: "ams_ad", currency: "EUR", active: false},
         Ticker {yahoo: "BESI.AS", local: "ams_besi", currency: "EUR", active: true},
         Ticker {yahoo: "BOKA.AS", local: "ams_boka", currency: "EUR", active: true},
         Ticker {yahoo: "CRXL.AS", local: "ams_crxl", currency: "EUR", active: false},
         Ticker {yahoo: "DRAK.AS", local: "ams_drak", currency: "EUR", active: false},
-        Ticker {yahoo: "FUR.AS", local: "ams_fur", currency: "EUR", active: true},
-        Ticker {yahoo: "SBMO.AS", local: "ams_sbm", currency: "EUR", active: true},
+        Ticker {yahoo: "FUR.AS", local: "ams_fur", currency: "EUR", active: false},
+        Ticker {yahoo: "SBMO.AS", local: "ams_sbm", currency: "EUR", active: false},
         Ticker {yahoo: "SR.AS", local: "ams_sr", currency: "EUR", active: false},
-        Ticker {yahoo: "ABO.BR", local: "ebr_abo", currency: "EUR", active: true},
+        Ticker {yahoo: "ABO.BR", local: "ebr_abo", currency: "EUR", active: false},
         Ticker {yahoo: "COFB.BR", local: "ebr_cofb", currency: "EUR", active: true},
         Ticker {yahoo: "DEVG.BR", local: "ebr_devg", currency: "EUR", active: false},
         Ticker {yahoo: "DEXB.BR", local: "ebr_dexb", currency: "EUR", active: false},
         Ticker {yahoo: "ENIN.BR", local: "ebr_enin", currency: "EUR", active: false},
-        Ticker {yahoo: "EURN.BR", local: "ebr_eurn", currency: "EUR", active: true},
+        Ticker {yahoo: "EURN.BR", local: "ebr_eurn", currency: "EUR", active: false},
         Ticker {yahoo: "EXM.BR", local: "ebr_exm", currency: "EUR", active: true},
         Ticker {yahoo: "NESTS.BR", local: "ebr_nests", currency: "EUR", active: false},
         Ticker {yahoo: "RHII.BR", local: "ebr_rhii", currency: "EUR", active: false},
-        Ticker {yahoo: "SOLB.BR", local: "ebr_solb", currency: "EUR", active: true},
-        Ticker {yahoo: "TESB.BR", local: "ebr_tess", currency: "EUR", active: true},
+        Ticker {yahoo: "SOLB.BR", local: "ebr_solb", currency: "EUR", active: false},
+        Ticker {yahoo: "TESB.BR", local: "ebr_tess", currency: "EUR", active: false},
         Ticker {yahoo: "THEB.BR", local: "ebr_theb", currency: "EUR", active: false},
-        Ticker {yahoo: "TNET.BR", local: "ebr_tnet", currency: "EUR", active: true},
-        Ticker {yahoo: "CA.PA", local: "epa_car", currency: "EUR", active: true},
+        Ticker {yahoo: "TNET.BR", local: "ebr_tnet", currency: "EUR", active: false},
+        Ticker {yahoo: "CA.PA", local: "epa_car", currency: "EUR", active: false},
         Ticker {yahoo: "ENGI.PA", local: "epa_gsz", currency: "EUR", active: true},
         Ticker {yahoo: "?", local: "etr_fme", currency: "EUR", active: false},
         Ticker {yahoo: "EUR=X", local: "USD", currency: "EUR", active: true},
         Ticker {yahoo: "EURUSD=X", local: "EUR", currency: "USD", active: true},
-        /* Note: crypto panics for years it didn't exist yet. */
         Ticker {yahoo: "ADA-EUR", local: "ADA", currency: "EUR", active: true},
         Ticker {yahoo: "BTC-EUR", local: "BTC", currency: "EUR", active: true},
-        Ticker {yahoo: "XRP-EUR", local: "XRP", currency: "EUR", active: true}
+        Ticker {yahoo: "XRP-EUR", local: "XRP", currency: "EUR", active: true},
+        Ticker {yahoo: "PHAU.AS", local: "etfs_phau", currency: "EUR", active: true},
+        /* Note: PHAG.MI is incorrect, it is from AS, but no ticker symbol available. It follows the same price though. */
+        Ticker {yahoo: "PHAG.MI", local: "etfs_psil", currency: "EUR", active: true},
     ];
     for ticker in tickers.iter()
     {
@@ -101,7 +103,7 @@ fn retrieve(aticker: &Ticker, ayear: i32)
     match history::retrieve_range(aticker.yahoo, start, Some(end))
     {
         Ok(t) => print(aticker, t),
-        Err(e) => () // Ignore exceptions
+        Err(_) => () // Ignore exceptions
     };
 }
 
