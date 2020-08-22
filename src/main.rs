@@ -1,7 +1,7 @@
 extern crate yahoo_finance;
 extern crate chrono;
 use chrono::{DateTime, TimeZone, Utc};
-use yahoo_finance::{history};
+use yahoo_finance::{history, Bar};
 
 
 struct Ticker<'a>
@@ -40,7 +40,11 @@ fn main()
         Ticker {yahoo: "ENGI.PA", local: "epa_gsz", currency: "EUR", active: true},
         Ticker {yahoo: "?", local: "etr_fme", currency: "EUR", active: false},
         Ticker {yahoo: "EUR=X", local: "USD", currency: "EUR", active: true},
-        Ticker {yahoo: "EURUSD=X", local: "EUR", currency: "USD", active: true}
+        Ticker {yahoo: "EURUSD=X", local: "EUR", currency: "USD", active: true},
+        /* Note: crypto panics for years it didn't exist yet. */
+        Ticker {yahoo: "ADA-EUR", local: "ADA", currency: "EUR", active: true},
+        Ticker {yahoo: "BTC-EUR", local: "BTC", currency: "EUR", active: true},
+        Ticker {yahoo: "XRP-EUR", local: "XRP", currency: "EUR", active: true}
     ];
     for (i, ticker) in tickers.iter().enumerate()
     {
@@ -55,17 +59,25 @@ fn process(aticker: &Ticker, ayear: i32)
     {
         return;
     }
-    retrieve_and_print(aticker, ayear);
+    retrieve(aticker, ayear);
 }
 
-fn retrieve_and_print(aticker: &Ticker, ayear: i32)
+fn retrieve(aticker: &Ticker, ayear: i32)
 {
     let start: DateTime<Utc> = Utc.ymd(ayear, 1, 1).and_hms(0, 0, 0);
     let end: DateTime<Utc> = Utc.ymd(ayear, 12, 31).and_hms(0, 0, 0);
-    let data = history::retrieve_range(aticker.yahoo, start, Some(end)).unwrap();
+    //let data = history::retrieve_range(aticker.yahoo, start, Some(end)).unwrap();
+    match history::retrieve_range(aticker.yahoo, start, Some(end))
+    {
+        Ok(t) => print(aticker, t),
+        Err(e) => () // Ignore exceptions
+    };
+}
 
+fn print(aticker: &Ticker, adata: Vec<Bar>)
+{
     // print the ledger price database line for each day we got a price from the api.
-    for bar in &data
+    for bar in &adata
     {
        println!("P {} {} {:.2} {}", bar.timestamp.format("%Y-%m-%d"), aticker.local, bar.close, aticker.currency)
     }
