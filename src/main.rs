@@ -79,6 +79,7 @@ fn main()
         Ticker {yahoo: "PHAU.AS", local: "etfs_phau", currency: "EUR", active: true},
         /* Note: PHAG.MI is incorrect, it is from AS, but no ticker symbol available. It follows the same price though. */
         Ticker {yahoo: "PHAG.MI", local: "etfs_psil", currency: "EUR", active: true},
+        Ticker {yahoo: "PHPD.AS", local: "etfs_phpd", currency: "EUR", active: true},
     ];
     for ticker in tickers.iter()
     {
