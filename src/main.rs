@@ -73,6 +73,8 @@ fn main()
         Ticker {yahoo: "?", local: "etr_fme", currency: "EUR", active: false},
         Ticker {yahoo: "EUR=X", local: "USD", currency: "EUR", active: true},
         Ticker {yahoo: "EURUSD=X", local: "EUR", currency: "USD", active: true},
+        Ticker {yahoo: "JPYEUR=X", local: "JPY", currency: "EUR", active: true},
+        Ticker {yahoo: "EURJPY=X", local: "EUR", currency: "JPY", active: true},
         Ticker {yahoo: "ADA-EUR", local: "ADA", currency: "EUR", active: true},
         Ticker {yahoo: "BTC-EUR", local: "BTC", currency: "EUR", active: true},
         Ticker {yahoo: "XRP-EUR", local: "XRP", currency: "EUR", active: true},
