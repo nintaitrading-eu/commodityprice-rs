@@ -1,0 +1,12 @@
+[package]
+name = "commodityprice"
+version = "0.1.0"
+authors = ["Andy Nagels <thereisanewway@gmail.com>"]
+edition = "2021"
+
+[dependencies]
+docopt = "=1.0.2"
+chrono = "0.4"
+yahoo_finance_api = "1.3"
+pin-project-internal = "=0.4.29"
+tokio-test = "0.4"

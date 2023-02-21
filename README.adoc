@@ -1,0 +1,5 @@
+= stockprice-rs
+
+== General info
+
+Command line application, that can get stock prices from Yahoo Finance.
