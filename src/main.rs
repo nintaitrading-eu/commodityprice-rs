@@ -37,7 +37,7 @@ fn main()
 
     if args.get_bool("--version")
     {
-        println!("Ledgerexport-tax v{}", VERSION);
+        println!("commodityprice v{}", VERSION);
         std::process::exit(0);
     }
 
