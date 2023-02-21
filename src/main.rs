@@ -1,7 +1,10 @@
 use chrono::{DateTime, TimeZone, Utc};
 use chrono::prelude::{Datelike};
-use yahoo_finance::{history, Bar};
+use yahoo_finance_api as yahoo;
+use yahoo_finance_api::YResponse;
 use docopt::Docopt;
+use tokio_test;
+use std::time::{Duration, UNIX_EPOCH};
 
 const VERSION: &'static str = "0.1.0";
 const USAGE: &'static str = "
@@ -100,22 +103,23 @@ fn process(aticker: &Ticker, ayear: i32)
 
 fn retrieve(aticker: &Ticker, ayear: i32)
 {
-    let start: DateTime<Utc> = Utc.ymd(ayear, 1, 1).and_hms(0, 0, 0);
-    let end: DateTime<Utc> = Utc.ymd(ayear, 12, 31).and_hms(0, 0, 0);
-    //let data = history::retrieve_range(aticker.yahoo, start, Some(end)).unwrap();
-    match history::retrieve_range(aticker.yahoo, start, Some(end))
+    let start: DateTime<Utc> = Utc.ymd(ayear, 1, 1).and_hms_milli(0, 0, 0, 0);
+    let end: DateTime<Utc> = Utc.ymd(ayear, 12, 31).and_hms_milli(23, 59, 59, 999);
+    let provider = yahoo::YahooConnector::new();
+
+    match tokio_test::block_on(provider.get_quote_history(aticker.yahoo, start, end))
     {
         Ok(t) => print(aticker, t),
         Err(_) => () // Ignore exceptions
     };
 }
 
-fn print(aticker: &Ticker, adata: Vec<Bar>)
+fn print(aticker: &Ticker, adata: YResponse)
 {
     // print the ledger price database line for each day we got a price from the api.
-    for bar in &adata
+    for item in &adata.quotes().unwrap()
     {
-       println!("P {} {} {:.2} {}", bar.timestamp.format("%Y-%m-%d"), aticker.local, bar.close, aticker.currency)
+       let formatted_timestamp = DateTime::<Utc>::from(UNIX_EPOCH + Duration::from_secs(item.timestamp)).format("%Y-%m-%d");
+       println!("P {} {} {:.2} {}", formatted_timestamp, aticker.local, item.close, aticker.currency)
     }
-
 }
