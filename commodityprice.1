@@ -1,0 +1,22 @@
+.TH COMMODITYPRICE 1 commodityprice\-VERSION
+.SH NAME
+commodityprice \- download historical commodity prices from yahoo finance
+.SH SYNOPSIS
+.B commodityprice
+.RB [ \-v ]
+.SH DEPENDS ON
+The yahoo finance api.
+.SH DESCRIPTION
+Commodityprice is a c program, that calls the yahoo finance api to retrieve historical price information for a set of ticker symbols.
+The data is printed on stdout.
+.SH OPTIONS
+.TP
+.B \-v
+Prints version information to standard output, then exits.
+.B [ \-\-year=<year> ]
+Used to specify the year to query.
+.SH USAGE
+.SH SEE ALSO
+.SH BUGS
+.SH EXAMPLES
+commodityprice --year=2023
