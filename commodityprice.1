@@ -13,10 +13,12 @@ The data is printed on stdout.
 .TP
 .B \-\-version
 Prints version information to standard output, then exits.
+.B \-\-tickers=<json>
+Json file with ticker symbol information, in the format defined by the yahoo finance api.
 .B [ \-\-year=<year> ]
 Used to specify the year to query. Current year is used by default.
 .SH USAGE
 .SH SEE ALSO
 .SH BUGS
 .SH EXAMPLES
-commodityprice --year=2023
+commodityprice --tickers=mytickers.json --year=2023
