@@ -4,6 +4,8 @@ use yahoo_finance_api as yahoo;
 use yahoo_finance_api::YResponse;
 use docopt::Docopt;
 use tokio_test;
+use serde::Deserialize;
+use std::path::Path;
 use std::time::{Duration, UNIX_EPOCH};
 
 const VERSION: &'static str = "0.1.0";
@@ -11,16 +13,18 @@ const USAGE: &'static str = "
 Commodityprice
 
 Usage:
-    commodityprice [--year=<year>]
+    commodityprice --tickers=<json> [--year=<year>]
     commodityprice (-h | --help)
     commodityprice --version
 
 Options:
-    [--year=<year>]   Get commodity prices for the given year. If no year is given, the current year is used.
+    --tickers=<json>  Json file with ticker symbols to download.
+    [--year=<year>]  Get commodity prices for the given year. If no year is given, the current year is used.
     -h --help  Show this screen.
     --version  Show version.
 ";
 
+#[derive(Deserialize, Debug)]
 struct Ticker<'a>
 {
     yahoo: &'a str,
@@ -48,6 +52,12 @@ fn main()
         Err(_) => current_year,
     };
 
+    let json = args.get_str("--tickers");
+    if !(json.len() > 0) || !Path::new(json).exists()
+    {
+        println!("File {} not found.", json);
+        std::process::exit(1);
+    };
 
     let tickers: Vec<Ticker> = vec![
         Ticker {yahoo: "AD.AS", local: "ams_ad", currency: "EUR", active: false},
