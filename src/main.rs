@@ -5,6 +5,8 @@ use yahoo_finance_api::YResponse;
 use docopt::Docopt;
 use tokio_test;
 use serde::Deserialize;
+use std::fs::File;
+use std::io::BufReader;
 use std::path::Path;
 use std::time::{Duration, UNIX_EPOCH};
 
@@ -25,11 +27,11 @@ Options:
 ";
 
 #[derive(Deserialize, Debug)]
-struct Ticker<'a>
+struct Ticker
 {
-    yahoo: &'a str,
-    local: &'a str,
-    currency: &'a str,
+    yahoo: String,
+    local: String,
+    currency: String,
     active: bool,
 }
 
@@ -59,43 +61,26 @@ fn main()
         std::process::exit(1);
     };
 
-    let tickers: Vec<Ticker> = vec![
-        Ticker {yahoo: "AD.AS", local: "ams_ad", currency: "EUR", active: false},
-        Ticker {yahoo: "BESI.AS", local: "ams_besi", currency: "EUR", active: true},
-        Ticker {yahoo: "BOKA.AS", local: "ams_boka", currency: "EUR", active: true},
-        Ticker {yahoo: "CRXL.AS", local: "ams_crxl", currency: "EUR", active: false},
-        Ticker {yahoo: "DRAK.AS", local: "ams_drak", currency: "EUR", active: false},
-        Ticker {yahoo: "FUR.AS", local: "ams_fur", currency: "EUR", active: false},
-        Ticker {yahoo: "SBMO.AS", local: "ams_sbm", currency: "EUR", active: false},
-        Ticker {yahoo: "SR.AS", local: "ams_sr", currency: "EUR", active: false},
-        Ticker {yahoo: "ABO.BR", local: "ebr_abo", currency: "EUR", active: false},
-        Ticker {yahoo: "COFB.BR", local: "ebr_cofb", currency: "EUR", active: true},
-        Ticker {yahoo: "DEVG.BR", local: "ebr_devg", currency: "EUR", active: false},
-        Ticker {yahoo: "DEXB.BR", local: "ebr_dexb", currency: "EUR", active: false},
-        Ticker {yahoo: "ENIN.BR", local: "ebr_enin", currency: "EUR", active: false},
-        Ticker {yahoo: "EURN.BR", local: "ebr_eurn", currency: "EUR", active: false},
-        Ticker {yahoo: "EXM.BR", local: "ebr_exm", currency: "EUR", active: true},
-        Ticker {yahoo: "NESTS.BR", local: "ebr_nests", currency: "EUR", active: false},
-        Ticker {yahoo: "RHII.BR", local: "ebr_rhii", currency: "EUR", active: false},
-        Ticker {yahoo: "SOLB.BR", local: "ebr_solb", currency: "EUR", active: false},
-        Ticker {yahoo: "TESB.BR", local: "ebr_tess", currency: "EUR", active: false},
-        Ticker {yahoo: "THEB.BR", local: "ebr_theb", currency: "EUR", active: false},
-        Ticker {yahoo: "TNET.BR", local: "ebr_tnet", currency: "EUR", active: false},
-        Ticker {yahoo: "CA.PA", local: "epa_car", currency: "EUR", active: false},
-        Ticker {yahoo: "ENGI.PA", local: "epa_gsz", currency: "EUR", active: true},
-        Ticker {yahoo: "?", local: "etr_fme", currency: "EUR", active: false},
-        Ticker {yahoo: "EUR=X", local: "USD", currency: "EUR", active: true},
-        Ticker {yahoo: "EURUSD=X", local: "EUR", currency: "USD", active: true},
-        Ticker {yahoo: "JPYEUR=X", local: "JPY", currency: "EUR", active: true},
-        Ticker {yahoo: "EURJPY=X", local: "EUR", currency: "JPY", active: true},
-        Ticker {yahoo: "ADA-EUR", local: "ADA", currency: "EUR", active: true},
-        Ticker {yahoo: "BTC-EUR", local: "BTC", currency: "EUR", active: true},
-        Ticker {yahoo: "XRP-EUR", local: "XRP", currency: "EUR", active: true},
-        Ticker {yahoo: "PHAU.AS", local: "etfs_phau", currency: "EUR", active: true},
-        /* Note: PHAG.MI is incorrect, it is from AS, but no ticker symbol available. It follows the same price though. */
-        Ticker {yahoo: "PHAG.MI", local: "etfs_psil", currency: "EUR", active: true},
-        Ticker {yahoo: "PHPD.AS", local: "etfs_phpd", currency: "EUR", active: true},
-    ];
+    let tickers_json = match File::open(json)
+    {
+        Ok(file) => file,
+        Err(_) =>
+        {
+            println!("Error: Could not open file {}.", json);
+            std::process::exit(1);
+        }
+    };
+    let reader = BufReader::new(tickers_json);
+    let tickers: Vec<Ticker> = match serde_json::from_reader(reader)
+    {
+        Ok(data) => data,
+        Err(_) =>
+        {
+            println!("Error: Could not parse json from reader.");
+            std::process::exit(1);
+        }
+    };
+
     for ticker in tickers.iter()
     {
         process(ticker, year)
@@ -117,7 +102,7 @@ fn retrieve(aticker: &Ticker, ayear: i32)
     let end: DateTime<Utc> = Utc.ymd(ayear, 12, 31).and_hms_milli(23, 59, 59, 999);
     let provider = yahoo::YahooConnector::new();
 
-    match tokio_test::block_on(provider.get_quote_history(aticker.yahoo, start, end))
+    match tokio_test::block_on(provider.get_quote_history(aticker.yahoo.as_str(), start, end))
     {
         Ok(t) => print(aticker, t),
         Err(_) => () // Ignore exceptions
