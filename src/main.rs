@@ -105,7 +105,7 @@ fn retrieve(aticker: &Ticker, ayear: i32)
     match tokio_test::block_on(provider.get_quote_history(aticker.yahoo.as_str(), start, end))
     {
         Ok(t) => print(aticker, t),
-        Err(_) => () // Ignore exceptions
+        Err(e) => eprintln!("{}", e.to_string())
     };
 }
 
