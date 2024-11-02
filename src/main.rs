@@ -10,7 +10,7 @@ use std::path::Path;
 use std::time::{Duration, UNIX_EPOCH};
 use time::{macros::datetime, OffsetDateTime};
 
-const VERSION: &'static str = "0.1.0";
+const VERSION: &'static str = "0.2.1";
 const USAGE: &'static str = "
 Commodityprice
 
