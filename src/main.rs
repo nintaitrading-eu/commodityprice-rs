@@ -1,5 +1,4 @@
-use chrono::{DateTime, TimeZone, Utc};
-use chrono::prelude::{Datelike};
+use chrono::{DateTime, Utc, Datelike};
 use yahoo_finance_api as yahoo;
 use yahoo_finance_api::YResponse;
 use docopt::Docopt;
@@ -9,6 +8,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
 use std::time::{Duration, UNIX_EPOCH};
+use time::{macros::datetime, OffsetDateTime};
 
 const VERSION: &'static str = "0.1.0";
 const USAGE: &'static str = "
@@ -98,9 +98,9 @@ fn process(aticker: &Ticker, ayear: i32)
 
 fn retrieve(aticker: &Ticker, ayear: i32)
 {
-    let start: DateTime<Utc> = Utc.ymd(ayear, 1, 1).and_hms_milli(0, 0, 0, 0);
-    let end: DateTime<Utc> = Utc.ymd(ayear, 12, 31).and_hms_milli(23, 59, 59, 999);
-    let provider = yahoo::YahooConnector::new();
+    let start: OffsetDateTime = datetime!(2000-1-1 0:00 UTC).replace_year(ayear).unwrap();
+    let end: OffsetDateTime = datetime!(2000-12-31 0:00 UTC).replace_year(ayear).unwrap();
+    let provider = yahoo::YahooConnector::new().unwrap();
 
     match tokio_test::block_on(provider.get_quote_history(aticker.yahoo.as_str(), start, end))
     {
