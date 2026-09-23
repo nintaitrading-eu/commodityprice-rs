@@ -4,8 +4,8 @@ use yahoo_finance_api::YResponse;
 use docopt::Docopt;
 use tokio_test;
 use serde::Deserialize;
-use std::fs::File;
-use std::io::BufReader;
+use std::fs::{File, OpenOptions};
+use std::io::{BufReader, Write};
 use std::path::Path;
 use std::time::{Duration, UNIX_EPOCH};
 use time::{macros::datetime, OffsetDateTime};
@@ -37,9 +37,13 @@ struct Ticker
 
 fn main()
 {
-    let args = Docopt::new(USAGE)
-        .and_then(|dopt| dopt.parse())
-        .unwrap_or_else(|e| e.exit());
+    let args = match Docopt::new(USAGE).and_then(|dopt| dopt.parse())
+    {
+        Ok(args) => args,
+        Err(_) => std::process::exit(1),
+    };
+
+    let mut logfile = create_log_file();
 
     if args.get_bool("--version")
     {
@@ -57,7 +61,7 @@ fn main()
     let json = args.get_str("--tickers");
     if !(json.len() > 0) || !Path::new(json).exists()
     {
-        println!("File {} not found.", json);
+        log_message(&mut logfile, format!("Ticker file not found: {}", json));
         std::process::exit(1);
     };
 
@@ -66,7 +70,7 @@ fn main()
         Ok(file) => file,
         Err(_) =>
         {
-            println!("Error: Could not open file {}.", json);
+            log_message(&mut logfile, format!("Could not open ticker file: {}", json));
             std::process::exit(1);
         }
     };
@@ -76,37 +80,94 @@ fn main()
         Ok(data) => data,
         Err(_) =>
         {
-            println!("Error: Could not parse json from reader.");
+            log_message(&mut logfile, "Could not parse ticker JSON.");
             std::process::exit(1);
         }
     };
 
     for ticker in tickers.iter()
     {
-        process(ticker, year)
+        process(ticker, year, &mut logfile)
     }
 }
 
-fn process(aticker: &Ticker, ayear: i32)
+fn process(aticker: &Ticker, ayear: i32, alogfile: &mut Option<File>)
 {
     if !(aticker.active)
     {
         return;
     }
-    retrieve(aticker, ayear);
+    retrieve(aticker, ayear, alogfile);
 }
 
-fn retrieve(aticker: &Ticker, ayear: i32)
+fn retrieve(aticker: &Ticker, ayear: i32, alogfile: &mut Option<File>)
 {
     let start: OffsetDateTime = datetime!(2000-1-1 0:00 UTC).replace_year(ayear).unwrap();
     let end: OffsetDateTime = datetime!(2000-12-31 0:00 UTC).replace_year(ayear).unwrap();
-    let provider = yahoo::YahooConnector::new().unwrap();
+    let provider = match yahoo::YahooConnector::new()
+    {
+        Ok(provider) => provider,
+        Err(e) =>
+        {
+            log_message(
+                alogfile,
+                format!("Could not create Yahoo provider for '{}': {}", aticker.yahoo, e),
+            );
+            return;
+        }
+    };
+
+    log_message(
+        alogfile,
+        format!(
+            "Retrieving ticker '{}' (local '{}', currency '{}') for year {}",
+            aticker.yahoo, aticker.local, aticker.currency, ayear
+        ),
+    );
 
     match tokio_test::block_on(provider.get_quote_history(aticker.yahoo.as_str(), start, end))
     {
-        Ok(t) => print(aticker, t),
-        Err(e) => eprintln!("{}", e.to_string())
+        Ok(t) =>
+        {
+            log_message(alogfile, format!("Retrieved ticker '{}'", aticker.yahoo));
+            print(aticker, t)
+        },
+        Err(e) => log_message(
+            alogfile,
+            format!("Failed to retrieve ticker '{}': {}", aticker.yahoo, e),
+        ),
     };
+}
+
+fn create_log_file() -> Option<File>
+{
+    let log_path = format!(
+        "/var/log/commodityprice_{}.log",
+        Utc::now().format("%Y%m%d%H%M%S"),
+    );
+    let path = Path::new(&log_path);
+
+    // Keep appending if this timestamped logfile already exists. This check also
+    // makes the create-vs-open behavior explicit for the logfile requested by the
+    // application.
+    let result = if path.exists()
+    {
+        OpenOptions::new().append(true).open(path)
+    }
+    else
+    {
+        OpenOptions::new().write(true).create(true).open(path)
+    };
+
+    result.ok()
+}
+
+fn log_message(alogfile: &mut Option<File>, message: impl AsRef<str>)
+{
+    if let Some(logfile) = alogfile.as_mut()
+    {
+        let _ = writeln!(logfile, "{} {}", Utc::now().to_rfc3339(), message.as_ref());
+    }
 }
 
 fn print(aticker: &Ticker, adata: YResponse)
