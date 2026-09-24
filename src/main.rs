@@ -117,19 +117,10 @@ fn retrieve(aticker: &Ticker, ayear: i32, alogfile: &mut Option<File>)
         }
     };
 
-    log_message(
-        alogfile,
-        format!(
-            "Retrieving ticker '{}' (local '{}', currency '{}') for year {}",
-            aticker.yahoo, aticker.local, aticker.currency, ayear
-        ),
-    );
-
     match tokio_test::block_on(provider.get_quote_history(aticker.yahoo.as_str(), start, end))
     {
         Ok(t) =>
         {
-            log_message(alogfile, format!("Retrieved ticker '{}'", aticker.yahoo));
             print(aticker, t)
         },
         Err(e) => log_message(
@@ -143,13 +134,12 @@ fn create_log_file() -> Option<File>
 {
     let log_path = format!(
         "/var/log/commodityprice_{}.log",
-        Utc::now().format("%Y%m%d%H%M%S"),
+        Utc::now().format("%Y%m%d"),
     );
     let path = Path::new(&log_path);
 
-    // Keep appending if this timestamped logfile already exists. This check also
-    // makes the create-vs-open behavior explicit for the logfile requested by the
-    // application.
+    // Keep appending if this timestamped logfile already exists.
+    // Otherwise a new one is created.
     let result = if path.exists()
     {
         OpenOptions::new().append(true).open(path)
@@ -172,7 +162,7 @@ fn log_message(alogfile: &mut Option<File>, message: impl AsRef<str>)
 
 fn print(aticker: &Ticker, adata: YResponse)
 {
-    // print the ledger price database line for each day we got a price from the api.
+    // Print the ledger price database line for each day we got a price from the api.
     for item in &adata.quotes().unwrap()
     {
        let formatted_timestamp = DateTime::<Utc>::from(UNIX_EPOCH + Duration::from_secs(item.timestamp)).format("%Y-%m-%d");
