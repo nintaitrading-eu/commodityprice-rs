@@ -1,4 +1,4 @@
-= stockprice-rs
+= commodityprice-rs
 
 == General info
 
